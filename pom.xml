@@ -41,6 +41,11 @@
       <artifactId>markdownj</artifactId>
       <version>0.3.0-1.0.2b4</version>
     </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.10</version>
+    </dependency>
    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

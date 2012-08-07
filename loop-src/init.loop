@@ -1,0 +1,8 @@
+module ribbon.init
+
+require `org.yaml.snakeyaml.Yaml`
+
+main ->
+  yaml.dump(yaml.load("  a: 1\n  b:\n    c: 3\n    d: 4\n")).print()
+  where
+    yaml: new Yaml()

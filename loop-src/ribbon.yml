@@ -1,0 +1,4 @@
+name: ribbon
+deps:
+  - org.looplang:loop:1.0
+  - org.yaml:snakeyaml:1.10

@@ -1,0 +1,4 @@
+module home
+
+get(request) ->
+  { @view : @home }

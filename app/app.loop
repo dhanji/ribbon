@@ -1,0 +1,5 @@
+
+
+route(uri) =>
+  '/'  :  @home
+  *    :  @home

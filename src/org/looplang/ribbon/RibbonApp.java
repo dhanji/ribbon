@@ -5,6 +5,8 @@ import com.rethrick.jade.JadeOptions;
 import loop.Loop;
 import loop.ast.script.ModuleDecl;
 import loop.ast.script.ModuleLoader;
+import loop.runtime.Caller;
+import loop.runtime.Closure;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -23,6 +25,8 @@ import java.util.Map;
  * @author dhanji@gmail.com (Dhanji R. Prasanna)
  */
 class RibbonApp {
+  public static final String APP = "app";
+  public static final String ROUTE_FUNC = "route";
   private final Jade jade;
 
   RibbonApp() {
@@ -39,18 +43,41 @@ class RibbonApp {
     HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
         HttpResponseStatus.OK);
 
-    Class<?> app = Loop.compile("app.loop");
-
     Object foundRoute;
-    Method route = app.getDeclaredMethod("route", Object.class);
+    Class<?> app = Loop.compile(APP + ".loop");
+    Endpoint primary = new Endpoint(APP, app);
 
-    foundRoute = route.invoke(null, request.getUri());
-    if (null == foundRoute)
-      throw new RuntimeException("app.route() did not return a valid endpoint (must be a symbol).");
+    if (primary.methods.containsKey(ROUTE_FUNC)) {
+      foundRoute = primary.dispatch(ROUTE_FUNC, request.getUri());
+      if (null == foundRoute)
+        throw new RuntimeException(
+            APP + ".route() did not return a valid endpoint (must be a symbol or a function).");
 
-    Endpoint endpoint = new Endpoint(foundRoute.toString(), Loop.compile(foundRoute + ".loop"));
-    Object result = endpoint.dispatch(request.getMethod().getName().toLowerCase(), request);
+      if (foundRoute instanceof Closure) {
+        Closure closure = (Closure) foundRoute;
+        try {
+          Object result = Caller.callClosure(closure, closure.target, new Object[]{request});
 
+          return respond(response, result, primary.getAfter());
+        } catch (Throwable throwable) {
+          throw (Exception) throwable;
+        }
+      } else {
+        Endpoint endpoint = new Endpoint(foundRoute.toString(), Loop.compile(foundRoute + ".loop"));
+        Object result = endpoint.dispatch(request.getMethod().getName().toLowerCase(), request);
+
+        return respond(response, result, endpoint.getAfter());
+      }
+    } else {
+      // Otherwise there is no routeing info, just treat the app file as the endpoint.
+      Object result = primary.dispatch(request.getMethod().getName().toLowerCase(), request);
+
+      return respond(response, result, primary.getAfter());
+    }
+  }
+
+  private RibbonResponse respond(HttpResponse response, Object result, Method after)
+      throws Exception {
     if (result instanceof String) {
       response.setContent(ChannelBuffers.copiedBuffer(result.toString(), CharsetUtil.UTF_8));
       response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
@@ -92,7 +119,7 @@ class RibbonApp {
     } else if (result instanceof HttpResponse)
       response = (HttpResponse) result;
 
-    return new RibbonResponse(response, endpoint.getAfter());
+    return new RibbonResponse(response, after);
   }
 
   private static class Endpoint {
@@ -100,7 +127,7 @@ class RibbonApp {
     private final Method after;
 
     private Endpoint(String name, Class<?> clazz) {
-      if (ModuleDecl.DEFAULT.name.equals(clazz.getName()))
+      if (!APP.equals(name) && ModuleDecl.DEFAULT.name.equals(clazz.getName()))
         throw new RuntimeException("Endpoint '" + name + "' is missing module declaration.");
 
       methods = new HashMap<String, Method>();
@@ -112,7 +139,7 @@ class RibbonApp {
       after = methods.get("after");
     }
 
-    public Object dispatch(String method, HttpRequest request) throws Exception {
+    public Object dispatch(String method, Object request) throws Exception {
       Method found = methods.get(method);
       if (found == null)
         return null;

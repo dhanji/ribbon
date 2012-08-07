@@ -1,5 +1,3 @@
 
-
-route(uri) =>
-  '/'  :  @home
-  *    :  @home
+get(req) ->
+  "Hello world!"

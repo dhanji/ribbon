@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.looplang</groupId>
-  <artifactId>ribbon-web</artifactId>
+  <artifactId>ribbon-bootstrap</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
   <name>jade</name>
@@ -22,29 +22,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty</artifactId>
-      <version>3.5.1.Final</version>
-    </dependency>
-    <dependency>
       <groupId>org.looplang</groupId>
       <artifactId>loop</artifactId>
       <version>1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.rethrick</groupId>
-      <artifactId>jade</artifactId>
-      <version>1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.markdownj</groupId>
-      <artifactId>markdownj</artifactId>
-      <version>0.3.0-1.0.2b4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>1.10</version>
     </dependency>
    <dependency>
       <groupId>junit</groupId>

@@ -32,7 +32,7 @@ class RibbonApp {
 
   RibbonApp() {
     JadeOptions options = new JadeOptions();
-    options.setBaseDir(PREFIX + "views");
+    options.setBaseDir("views");
 
     jade = new Jade(options);
   }

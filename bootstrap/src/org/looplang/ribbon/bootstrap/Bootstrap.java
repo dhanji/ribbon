@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,28 +62,22 @@ public class Bootstrap {
     }
 
     List<String> deps = new ArrayList<String>();
-    BufferedReader reader = new BufferedReader(new FileReader(yaml));
-    boolean inDeps = false;
+    BufferedReader reader = new BufferedReader(new FileReader("._classpath"));
     while (reader.ready()) {
       String line = reader.readLine();
-      if (line.equals("deps:")) {
-        inDeps = true;
-        continue;
-      }
 
-      if (inDeps) {
-        if (line.isEmpty() || !line.startsWith("  - "))
-          break;
-        deps.add(line.substring("  - ".length()).trim());
-      }
+      deps.addAll(Arrays.asList(line.split(":")));
     }
 
     for (String dep : deps) {
-      addDepToClasspath(dep);
+      if (!dep.isEmpty())
+        addDepToClasspath(dep);
     }
 
-    // Run the command line arg as a loop file.
-    Loop.run(args[0] + ".loop", args);
+    // Run the ribbon web app!
+    Class.forName("org.looplang.ribbon.Ribbon")
+        .getDeclaredMethod("main", String[].class)
+        .invoke(null, args);
   }
 
   private static void runCommand(String command, String... args) throws Exception {

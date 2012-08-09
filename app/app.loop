@@ -4,4 +4,4 @@ route(uri) =>
   *    : @home
 
 get(req) ->
-  "Hello world!"
+  "Nice ribbon!"

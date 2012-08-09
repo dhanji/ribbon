@@ -25,13 +25,14 @@ import java.util.Map;
  * @author dhanji@gmail.com (Dhanji R. Prasanna)
  */
 class RibbonApp {
+  public static final String PREFIX = "app/";
   public static final String APP = "app";
   public static final String ROUTE_FUNC = "route";
   private final Jade jade;
 
   RibbonApp() {
     JadeOptions options = new JadeOptions();
-    options.setBaseDir("views");
+    options.setBaseDir(PREFIX + "views");
 
     jade = new Jade(options);
   }
@@ -44,7 +45,7 @@ class RibbonApp {
         HttpResponseStatus.OK);
 
     Object foundRoute;
-    Class<?> app = Loop.compile(APP + ".loop");
+    Class<?> app = Loop.compile(PREFIX + APP + ".loop");
     Endpoint primary = new Endpoint(APP, app);
 
     if (primary.methods.containsKey(ROUTE_FUNC)) {
@@ -63,7 +64,7 @@ class RibbonApp {
           throw (Exception) throwable;
         }
       } else {
-        Endpoint endpoint = new Endpoint(foundRoute.toString(), Loop.compile(foundRoute + ".loop"));
+        Endpoint endpoint = new Endpoint(foundRoute.toString(), Loop.compile(PREFIX + foundRoute + ".loop"));
         Object result = endpoint.dispatch(request.getMethod().getName().toLowerCase(), request);
 
         return respond(response, result, endpoint.getAfter());

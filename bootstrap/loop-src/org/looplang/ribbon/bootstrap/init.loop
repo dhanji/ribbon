@@ -27,7 +27,9 @@ create_dirs() ->
   'views'.create_dir(),
   'assets/images'.create_dir(),
   'assets/scripts'.create_dir(),
-  'assets/css'.create_dir()
+  'assets/css'.create_dir(),
+  print("    write app/app.loop"),
+  f.write('app/app.loop', 'get(request) -> \n  "Nice ribbon!" \n')
 
 main(args) ->
   validate(args),

@@ -2,15 +2,14 @@ package org.looplang.ribbon.bootstrap;
 
 import loop.Loop;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Dhanji R. Prasanna (dhanji@gmail.com)
@@ -20,7 +19,29 @@ public class Bootstrap {
   private static volatile URLClassLoader classLoader;
   private static volatile Method method;
 
+  private static final Set<String> COMMANDS = new HashSet<String>();
+  static {
+    COMMANDS.add("init");
+    COMMANDS.add("add");
+    COMMANDS.add("remove");
+  }
+
   public static void main(String[] args) throws Exception {
+
+    if (args.length > 0 && COMMANDS.contains(args[0])) {
+      // Read deps first (if any)
+      InputStream depStream = Bootstrap.class.getResourceAsStream(args[0] + ".deps");
+      if (depStream != null) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(depStream));
+        while (reader.ready())
+          addDepToClasspath(reader.readLine());
+      }
+
+      InputStream stream = Bootstrap.class.getResourceAsStream(args[0] + ".loop");
+      Loop.run(args[0], new InputStreamReader(stream), args);
+      return;
+    }
+
     // Load yml and grep the deps.
     File yaml = new File("ribbon.yml");
     if (!yaml.exists()) {
@@ -100,14 +121,15 @@ public class Bootstrap {
   private static void fetchDependency(String dep) throws Exception {
     String repo = "http://repo1.maven.org/maven2";
 
-    System.out.print("Resolving " + dep + "...");
+    System.out.print("   resolving...");
     Process process = Runtime.getRuntime().exec("mvn dependency:get -Dartifact=" + dep +
         " -DrepoUrl=" + repo +
         " --batch-mode");
 
     if (process.waitFor() == 0)
-      System.out.println("OK");
+      System.out.println("ok");
     else {
+      System.out.println("failed");
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       while (br.ready())
         System.out.println(br.readLine());

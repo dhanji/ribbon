@@ -2,7 +2,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.looplang</groupId>
+  <groupId>org.looplang.ribbon</groupId>
   <artifactId>ribbon-bootstrap</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
@@ -37,6 +37,11 @@
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>loop-src</directory>
+      </resource>
+    </resources>
     <testResources>
       <testResource>
         <directory>test-resources</directory>

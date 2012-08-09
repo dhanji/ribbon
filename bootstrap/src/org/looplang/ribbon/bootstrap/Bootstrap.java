@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -71,13 +73,13 @@ public class Bootstrap {
 
     for (String dep : deps) {
       if (!dep.isEmpty())
-        addDepToClasspath(dep);
+        addJarPathToClasspath(new File(dep));
     }
 
     // Run the ribbon web app!
     Class.forName("org.looplang.ribbon.Ribbon")
-        .getDeclaredMethod("main", String[].class)
-        .invoke(null, args);
+        .getDeclaredMethod("start")
+        .invoke(null);
   }
 
   private static void runCommand(String command, String... args) throws Exception {
@@ -110,6 +112,12 @@ public class Bootstrap {
       fetchDependency(dep);
     }
 
+    addJarPathToClasspath(jarFile);
+  }
+
+  private static void addJarPathToClasspath(File jarFile)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      MalformedURLException {
     if (classLoader == null) {
       classLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
       method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);

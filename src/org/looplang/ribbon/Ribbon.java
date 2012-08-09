@@ -22,6 +22,10 @@ public class Ribbon {
   private static final int PORT = 8080;
 
   public static void main(String[] args) {
+    start();
+  }
+
+  public static void start() {
     RibbonApp ribbonApp = new RibbonApp();
 
     ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(

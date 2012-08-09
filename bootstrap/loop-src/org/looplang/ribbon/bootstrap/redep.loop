@@ -1,0 +1,41 @@
+module ribbon.redep
+
+require console as console
+require file as f
+require `org.yaml.snakeyaml.Yaml`
+
+# rebuild project classpath from yaml
+
+quit(msg) ->
+  if msg == Nothing then print(def) else print(msg),
+  exit(1)
+  where
+    def: 'Usage: ribbon redep \n'
+
+validate(args) ->
+  if yaml_exists then Nothing else quit('not a valid ribbon project (have you run ribbon init?) \n')
+  where
+    yaml_exists: new java.io.File('ribbon.yml').exists()
+
+dont_proceed() ->
+  classpath.exists() and (classpath.lastModified() >= yaml.lastModified())
+  where
+    classpath: f.file('._classpath')
+    yaml     : f.file('ribbon.yml')
+
+redep() ->
+  console.write('  analyze dependency tree'),
+  f.write('tmp_pom.xml', `org.mvel2.templates.TemplateRuntime`<-eval(template_pom, config)),
+  `org.looplang.ribbon.bootstrap.Bootstrap`<-buildClasspath('tmp_pom.xml', '._classpath'),
+  print("  cleanup temporary files"),
+  new java.io.File('tmp_pom.xml').delete()
+  where
+    yaml:          new Yaml()
+    config:        yaml.load(f.read('ribbon.yml'))
+    template_pom:  `loop.Util`<-toString(`org.looplang.ribbon.bootstrap.Bootstrap::class`<-getResourceAsStream('template_pom.xml'))
+
+
+main(args) ->
+  validate(args),
+  print("  rebuild project classpath"),
+  if dont_proceed() then quit('  already up-to-date') else redep()

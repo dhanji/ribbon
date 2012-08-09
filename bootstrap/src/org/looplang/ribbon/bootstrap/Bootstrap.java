@@ -2,7 +2,11 @@ package org.looplang.ribbon.bootstrap;
 
 import loop.Loop;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,16 +28,25 @@ public class Bootstrap {
     COMMANDS.add("init");
     COMMANDS.add("add");
     COMMANDS.add("remove");
+    COMMANDS.add("redep");
   }
 
   public static void main(String[] args) throws Exception {
+    // Everything needs yaml so just include it by default.
+    addDepToClasspath("org.yaml:snakeyaml:1.10");
 
     if (args.length > 0 && COMMANDS.contains(args[0])) {
       runCommand(args[0], args);
 
       // Add basic deps if this is an init command.
-      if ("init".equals(args[0]))
+      if ("init".equals(args[0])) {
         runCommand("add", "add", "org.looplang.ribbon:ribbon-web:1.0");
+      }
+
+      // Rebuild classpath if necessary.
+      runCommand("redep", "redep");
+
+      System.out.println();
       return;
     }
 
@@ -42,7 +55,7 @@ public class Bootstrap {
     if (!yaml.exists()) {
       yaml = new File(args[0] + ".yml");
       if (!yaml.exists()) {
-        System.out.println("Not a valid ribbon project. Please run: 'ribbon init <project>'");
+        System.out.println("not a valid ribbon project. Please run: 'ribbon init <project>'\n");
         System.exit(1);
       }
     }
@@ -85,7 +98,7 @@ public class Bootstrap {
     Loop.run(command, reader, args);
   }
 
-  private static InputStreamReader stream(String arg) {
+  public static InputStreamReader stream(String arg) {
     return new InputStreamReader(Bootstrap.class.getResourceAsStream(arg + ".loop"));
   }
 
@@ -137,6 +150,23 @@ public class Bootstrap {
     Process process = Runtime.getRuntime().exec("mvn dependency:get -Dartifact=" + dep +
         " -DrepoUrl=" + repo +
         " --batch-mode");
+
+    if (process.waitFor() == 0)
+      System.out.println("ok");
+    else {
+      System.out.println("failed");
+      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      while (br.ready())
+        System.out.println(br.readLine());
+    }
+  }
+
+  public static void buildClasspath(String pomFile, String to) throws Exception {
+    System.out.print("   analyzing...");
+    Process process = Runtime.getRuntime().exec("mvn dependency:build-classpath --file=" + pomFile
+        + " -Dmdep.outputFile="
+        + to
+        + " --batch-mode");
 
     if (process.waitFor() == 0)
       System.out.println("ok");

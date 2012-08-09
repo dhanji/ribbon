@@ -1,0 +1,40 @@
+module ribbon.remove
+
+require console as console
+require file as f
+require `org.yaml.snakeyaml.Yaml`
+
+quit(msg) ->
+  if msg == Nothing then print(def) else print(msg),
+  exit(1)
+  where
+    def: 'Usage: ribbon remove <dependency> \n'
+
+validate(args) ->
+  if args.size() < 2 then quit(Nothing) else Nothing,
+  if yaml_exists then Nothing else quit('not a valid ribbon project (have you run ribbon init?) \n')
+  where
+    yaml_exists: new java.io.File('ribbon.yml').exists()
+
+remove_dep(dep) ->
+  print(""),
+  print("   update ribbon.yml"),
+  config.deps.remove(dep),
+  f.write('ribbon.yml', yaml.dump(config))
+  where
+    yaml:    new Yaml()
+    config:  yaml.load(f.read('ribbon.yml'))
+
+check_dep(dep) ->
+  if config.deps.contains(dep) then remove_dep(dep) else finish_early()
+  where
+    yaml:    new Yaml()
+    config:  yaml.load(f.read('ribbon.yml'))
+    finish_early ->
+      print("   (doesn't exist)")
+
+
+main(args) ->
+  validate(args),
+  console.write("   remove @{args[1]}   "),
+  check_dep(args[1])

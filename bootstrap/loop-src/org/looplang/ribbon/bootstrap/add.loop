@@ -1,0 +1,42 @@
+module ribbon.add
+
+require console as console
+require file as f
+require `org.yaml.snakeyaml.Yaml`
+
+quit(msg) ->
+  if msg == Nothing then print(def) else print(msg),
+  exit(1)
+  where
+    def: 'Usage: ribbon add <dependency> \n'
+
+validate(args) ->
+  if args.size() < 2 then quit(Nothing) else Nothing,
+  if yaml_exists then Nothing else quit('not a valid ribbon project (have you run ribbon init?) \n')
+  where
+    yaml_exists: new java.io.File('ribbon.yml').exists()
+
+write_yaml(dep) ->
+  print("   update ribbon.yml"),
+  config.deps.add(dep),
+  f.write('ribbon.yml', yaml.dump(config))
+  where
+    yaml:    new Yaml()
+    config:  yaml.load(f.read('ribbon.yml'))
+
+check_dep(dep) ->
+  if config.deps.contains(dep) then finish_early() else add_dep(dep)
+  where
+    yaml:    new Yaml()
+    config:  yaml.load(f.read('ribbon.yml'))
+    finish_early ->
+      print('   (exists)')
+
+add_dep(dep) ->
+  `org.looplang.ribbon.bootstrap.Bootstrap`.fetchDependency(dep),
+  write_yaml(dep)
+
+main(args) ->
+  validate(args),
+  console.write("      add @{args[1]}   "),
+  check_dep(args[1])

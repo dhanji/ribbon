@@ -1,6 +1,7 @@
 module ribbon.init
 
 require file as f
+require console as console
 require `org.yaml.snakeyaml.Yaml`
 
 quit() ->
@@ -28,16 +29,8 @@ create_dirs() ->
   'assets/scripts'.create_dir(),
   'assets/css'.create_dir()
 
-add_dep(dep) ->
-  print_fragment("  add_dep @{dep}"),
-  `org.looplang.ribbon.bootstrap.Bootstrap`.fetchDependency(dep)
-
-add_web_deps() ->
-  add_dep('org.looplang.ribbon:ribbon-web:1.0')
-
 main(args) ->
   validate(args),
-  print("     init @{args[1]}..."),
+  print("     init @{args[1]} (new ribbon project)"),
   create_dirs(),
-  write_yaml(args),
-  add_web_deps()
+  write_yaml(args)

@@ -1,3 +1,0 @@
-name: init
-deps:
-  - org.yaml:snakeyaml:1.10

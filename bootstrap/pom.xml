@@ -6,7 +6,7 @@
   <artifactId>ribbon-bootstrap</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>jade</name>
+  <name>ribbon-bootstrap</name>
   <url>http://looplang.org/ribbon</url>
 
   <repositories>

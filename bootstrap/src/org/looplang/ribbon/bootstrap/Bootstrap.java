@@ -29,16 +29,11 @@ public class Bootstrap {
   public static void main(String[] args) throws Exception {
 
     if (args.length > 0 && COMMANDS.contains(args[0])) {
-      // Read deps first (if any)
-      InputStream depStream = Bootstrap.class.getResourceAsStream(args[0] + ".deps");
-      if (depStream != null) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(depStream));
-        while (reader.ready())
-          addDepToClasspath(reader.readLine());
-      }
+      runCommand(args[0], args);
 
-      InputStream stream = Bootstrap.class.getResourceAsStream(args[0] + ".loop");
-      Loop.run(args[0], new InputStreamReader(stream), args);
+      // Add basic deps if this is an init command.
+      if ("init".equals(args[0]))
+        runCommand("add", "add", "org.looplang.ribbon:ribbon-web:1.0");
       return;
     }
 
@@ -75,6 +70,23 @@ public class Bootstrap {
 
     // Run the command line arg as a loop file.
     Loop.run(args[0] + ".loop", args);
+  }
+
+  private static void runCommand(String command, String... args) throws Exception {
+    // Read deps first (if any)
+    InputStream depStream = Bootstrap.class.getResourceAsStream(command + ".deps");
+    if (depStream != null) {
+      BufferedReader reader = new BufferedReader(new InputStreamReader(depStream));
+      while (reader.ready())
+        addDepToClasspath(reader.readLine());
+    }
+
+    InputStreamReader reader = stream(command);
+    Loop.run(command, reader, args);
+  }
+
+  private static InputStreamReader stream(String arg) {
+    return new InputStreamReader(Bootstrap.class.getResourceAsStream(arg + ".loop"));
   }
 
   @SuppressWarnings("deprecation")

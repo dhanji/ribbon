@@ -5,34 +5,34 @@ require console as console
 require `org.yaml.snakeyaml.Yaml`
 
 quit() ->
-  print('Usage: ribbon init <project_name> \n'),
+  print('Usage: ribbon init <project_name> \n')
   exit(1)
 
 validate(args) ->
   if args.size() < 2 then quit() else Nothing
 
 write_yaml(args) ->
-  print("    write ribbon.yml"),
+  yaml:    new Yaml()
+  project: yaml.dump({ @name: args[1], @deps: [] })
+  print("    write ribbon.yml")
   f.write('ribbon.yml', project.toString())
   where
-    yaml:    new Yaml()
-    project: yaml.dump({ @name: args[1], @deps: [] })
 
 create_dir(dir) ->
-  print("   create @{dir}"),
+  print("   create @{dir}")
   new java.io.File(dir).mkdirs()
 
 create_dirs() ->
-  'app'.create_dir(),
-  'views'.create_dir(),
-  'assets/images'.create_dir(),
-  'assets/scripts'.create_dir(),
-  'assets/css'.create_dir(),
-  print("    write app/app.loop"),
+  'app'.create_dir()
+  'views'.create_dir()
+  'assets/images'.create_dir()
+  'assets/scripts'.create_dir()
+  'assets/css'.create_dir()
+  print("    write app/app.loop")
   f.write('app/app.loop', 'get(request) -> \n  "Nice ribbon!" \n')
 
 main(args) ->
-  validate(args),
-  print("     init @{args[1]} (new ribbon project)"),
-  create_dirs(),
+  validate(args)
+  print("     init @{args[1]} (new ribbon project)")
+  create_dirs()
   write_yaml(args)

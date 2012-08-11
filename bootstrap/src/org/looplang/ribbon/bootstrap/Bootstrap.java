@@ -1,22 +1,15 @@
 package org.looplang.ribbon.bootstrap;
 
 import loop.Loop;
+import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Dhanji R. Prasanna (dhanji@gmail.com)
@@ -27,7 +20,9 @@ public class Bootstrap {
   private static volatile Method method;
 
   private static final Set<String> COMMANDS = new HashSet<String>();
+
   static {
+    COMMANDS.add("config");
     COMMANDS.add("init");
     COMMANDS.add("add");
     COMMANDS.add("remove");
@@ -47,7 +42,8 @@ public class Bootstrap {
       }
 
       // Rebuild classpath if necessary.
-      runCommand("redep", "redep");
+      if (!"config".equals(args[0]))
+        runCommand("redep", "redep");
 
       System.out.println();
       return;
@@ -76,10 +72,24 @@ public class Bootstrap {
         addJarPathToClasspath(new File(dep));
     }
 
-    // Run the ribbon web app!
-    Class.forName("org.looplang.ribbon.Ribbon")
-        .getDeclaredMethod("start")
-        .invoke(null);
+    // Read configuration from ribbon.yml
+    Yaml y = new Yaml();
+    FileReader io = new FileReader("ribbon.yml");
+    Object main;
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> config = (Map<String, Object>) y.load(io);
+      main = config.get("entry_point");
+    } finally {
+      io.close();
+    }
+    if (main != null)
+      Loop.run(main.toString() + ".loop", args);
+    else
+      // Run the ribbon web app!
+      Class.forName("org.looplang.ribbon.Ribbon")
+          .getDeclaredMethod("start")
+          .invoke(null);
   }
 
   private static void runCommand(String command, String... args) throws Exception {

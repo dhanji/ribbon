@@ -1,0 +1,30 @@
+module ribbon.add
+
+require console as console
+require file as f
+require `org.yaml.snakeyaml.Yaml`
+
+quit(msg) ->
+  def: 'Usage: ribbon config <key=value> \n'
+  if msg == Nothing then print(def) else print(msg)
+  exit(1)
+
+validate(args) ->
+  yaml_exists = new java.io.File('ribbon.yml').exists()
+  if args.size() < 2 then quit(Nothing) else Nothing
+  if yaml_exists then Nothing else quit('not a valid ribbon project (have you run ribbon init?) \n')
+
+configure(key, value) ->
+  yaml =  new Yaml()
+  config = yaml.load(f.read('ribbon.yml'))
+  config[key] = value
+  print("   update ribbon.yml")
+  f.write('ribbon.yml', yaml.dump(config))
+
+main(args) ->
+  validate(args)
+  cmd = args[1]
+  key = cmd.substring(0, cmd['='])
+  value = cmd.substring(cmd['='] + 1)
+  print("   config @{key}=@{value}")
+  configure(key, value)

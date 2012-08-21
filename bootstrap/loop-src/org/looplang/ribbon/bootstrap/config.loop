@@ -3,6 +3,7 @@ module ribbon.add
 require console as console
 require file as f
 require `org.yaml.snakeyaml.Yaml`
+require java.util.Arrays
 
 quit(msg) ->
   def: 'Usage: ribbon config <key=value> \n'
@@ -17,6 +18,7 @@ validate(args) ->
 configure(key, value) ->
   yaml =  new Yaml()
   config = yaml.load(f.read('ribbon.yml'))
+  value = unless value.contains(',') then Arrays::asList(value.split[',']) else value
   config[key] = value
   print("   update ribbon.yml")
   f.write('ribbon.yml', yaml.dump(config))

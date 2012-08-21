@@ -18,6 +18,7 @@ public class Bootstrap {
   private static final String HOME = System.getProperty("user.home");
   private static volatile URLClassLoader classLoader;
   private static volatile Method method;
+  private static final Set<String> MAVEN_REPOS = new LinkedHashSet<String>();
 
   private static final Set<String> COMMANDS = new HashSet<String>();
 
@@ -27,6 +28,8 @@ public class Bootstrap {
     COMMANDS.add("add");
     COMMANDS.add("remove");
     COMMANDS.add("redep");
+
+    MAVEN_REPOS.add("http://repo1.maven.org/maven2");
   }
 
   public static void main(String[] args) throws Exception {
@@ -67,22 +70,23 @@ public class Bootstrap {
       deps.addAll(Arrays.asList(line.split(":")));
     }
 
+    Map<String, Object> config = readRibbonYml();
+
+    // Allow user to configure custom maven repos
+    Object repositories = config.get("repositories");
+    if (null != repositories) {
+      if (repositories instanceof Collection)
+        MAVEN_REPOS.addAll((Collection<? extends String>) repositories);
+      else
+        MAVEN_REPOS.add(repositories.toString());
+    }
+
     for (String dep : deps) {
       if (!dep.isEmpty())
         addJarPathToClasspath(new File(dep));
     }
 
-    // Read configuration from ribbon.yml
-    Yaml y = new Yaml();
-    FileReader io = new FileReader("ribbon.yml");
-    Object main;
-    try {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> config = (Map<String, Object>) y.load(io);
-      main = config.get("entry_point");
-    } finally {
-      io.close();
-    }
+    Object main = config.get("entry_point");
     if (main != null)
       Loop.run(main.toString() + ".loop", args);
     else
@@ -90,6 +94,19 @@ public class Bootstrap {
       Class.forName("org.looplang.ribbon.Ribbon")
           .getDeclaredMethod("start")
           .invoke(null);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> readRibbonYml() throws IOException {
+    // Read configuration from ribbon.yml
+    Yaml y = new Yaml();
+    FileReader io = new FileReader("ribbon.yml");
+    try {
+      return (Map<String, Object>) y.load(io);
+
+    } finally {
+      io.close();
+    }
   }
 
   private static void runCommand(String command, String... args) throws Exception {
@@ -157,7 +174,7 @@ public class Bootstrap {
   }
 
   private static void fetchDependency(String dep) throws Exception {
-    String repo = "http://repo1.maven.org/maven2";
+    String repo = MAVEN_REPOS.toString().replaceAll("[\\[\\] ]", "");
 
     System.out.print("   resolving...");
     Process process = Runtime.getRuntime().exec("mvn dependency:get -Dartifact=" + dep +

@@ -30,7 +30,6 @@ check_dep(dep) ->
       print('   (exists)')
 
 add_dep(dep) ->
-  `org.looplang.ribbon.bootstrap.Bootstrap`.fetchDependency(dep)
   write_yaml(dep)
 
 main(args) ->

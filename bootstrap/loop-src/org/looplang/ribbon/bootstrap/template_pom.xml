@@ -18,6 +18,19 @@
       <id>codehaus</id>
       <url>http://repository.codehaus.org</url>
     </repository>
+    @if{repositories is String}
+      <repository>
+        <id>@{repositories}</id>
+        <url>@{repositories}</url>
+      </repository>
+    @else{}
+      @foreach{repo : repositories}
+      <repository>
+        <id>@{repo}</id>
+        <url>@{repo}</url>
+      </repository>
+      @end{}
+    @end{}
   </repositories>
 
   <dependencies>
@@ -47,6 +60,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>

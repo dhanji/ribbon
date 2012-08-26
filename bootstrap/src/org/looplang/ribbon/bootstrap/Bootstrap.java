@@ -1,6 +1,7 @@
 package org.looplang.ribbon.bootstrap;
 
 import loop.Loop;
+import loop.LoopCompileException;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
@@ -88,7 +89,12 @@ public class Bootstrap {
 
     Object main = config.get("entry_point");
     if (main != null)
-      Loop.run(main.toString() + ".loop", args);
+      try {
+        Loop.run(main.toString() + ".loop", args);
+      } catch (LoopCompileException e) {
+        // Suppress as it is already printed
+        System.err.println("ribbon: abnormal exit");
+      }
     else
       // Run the ribbon web app!
       Class.forName("org.looplang.ribbon.Ribbon")

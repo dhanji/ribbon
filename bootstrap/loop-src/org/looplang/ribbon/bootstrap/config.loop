@@ -18,8 +18,8 @@ validate(args) ->
 configure(key, value) ->
   yaml =  new Yaml()
   config = yaml.load(f.read('ribbon.yml'))
-  value = unless value.contains(',') then Arrays::asList(value.split[',']) else value
-  config[key] = value
+  value = if value.contains(',') then Arrays::asList(value.split(',')) else value
+  config[key] = value.print()
   print("   update ribbon.yml")
   f.write('ribbon.yml', yaml.dump(config))
 

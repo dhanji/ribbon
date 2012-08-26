@@ -3,6 +3,9 @@ module ribbon.redep
 require console as console
 require file as f
 require `org.yaml.snakeyaml.Yaml`
+require loop.Util
+require org.looplang.ribbon.bootstrap.Bootstrap
+require org.mvel2.templates.TemplateRuntime
 
 # rebuild project classpath from yaml
 
@@ -23,10 +26,10 @@ dont_proceed() ->
 redep() ->
   yaml = new Yaml()
   config = yaml.load(f.read('ribbon.yml'))
-  template_pom = `loop.Util`<-toString(`org.looplang.ribbon.bootstrap.Bootstrap::class`<-getResourceAsStream('template_pom.xml'))
+  template_pom = Util::toString(Bootstrap.getResourceAsStream('template_pom.xml'))
   console.write('  analyze dependency tree')
-  f.write('tmp_pom.xml', `org.mvel2.templates.TemplateRuntime`<-eval(template_pom, config))
-  `org.looplang.ribbon.bootstrap.Bootstrap`<-buildClasspath('tmp_pom.xml', '._classpath')
+  f.write('tmp_pom.xml', TemplateRuntime::eval(template_pom, config))
+  Bootstrap::buildClasspath('tmp_pom.xml', '._classpath')
   print("  cleanup temporary files")
   new java.io.File('tmp_pom.xml').delete()
 

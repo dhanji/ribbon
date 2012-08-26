@@ -29,13 +29,22 @@ public class Bootstrap {
     COMMANDS.add("add");
     COMMANDS.add("remove");
     COMMANDS.add("redep");
-
-    MAVEN_REPOS.add("http://repo1.maven.org/maven2");
   }
 
   public static void main(String[] args) throws Exception {
     // Everything needs yaml so just include it by default.
     addDepToClasspath("org.yaml:snakeyaml:1.10");
+
+    Map<String, Object> config = readRibbonYml();
+
+    // Allow user to configure custom maven repos
+    Object repositories = config.get("repositories");
+    if (null != repositories) {
+      if (repositories instanceof Collection)
+        MAVEN_REPOS.addAll((Collection<? extends String>) repositories);
+      else
+        MAVEN_REPOS.add(repositories.toString());
+    }
 
     if (args.length > 0 && COMMANDS.contains(args[0])) {
       runCommand(args[0], args);
@@ -69,17 +78,6 @@ public class Bootstrap {
       String line = reader.readLine();
 
       deps.addAll(Arrays.asList(line.split(":")));
-    }
-
-    Map<String, Object> config = readRibbonYml();
-
-    // Allow user to configure custom maven repos
-    Object repositories = config.get("repositories");
-    if (null != repositories) {
-      if (repositories instanceof Collection)
-        MAVEN_REPOS.addAll((Collection<? extends String>) repositories);
-      else
-        MAVEN_REPOS.add(repositories.toString());
     }
 
     for (String dep : deps) {
@@ -180,37 +178,50 @@ public class Bootstrap {
   }
 
   private static void fetchDependency(String dep) throws Exception {
-    String repo = MAVEN_REPOS.toString().replaceAll("[\\[\\] ]", "");
+    String repo = toRepoString();
 
     System.out.print("   resolving...");
-    Process process = Runtime.getRuntime().exec("mvn dependency:get -Dartifact=" + dep +
+    String command = "mvn dependency:get -Dartifact=" + dep +
         " -DrepoUrl=" + repo +
-        " --batch-mode");
+        " --batch-mode";
+    Process process = Runtime.getRuntime().exec(command);
 
     if (process.waitFor() == 0)
       System.out.println("ok");
     else {
       System.out.println("failed");
+      System.out.println(command);
+      System.out.println();
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       while (br.ready())
         System.out.println(br.readLine());
+      System.exit(1);
     }
+  }
+
+  private static String toRepoString() {
+    return MAVEN_REPOS.toString().replaceAll("[\\[\\] ]", "");
   }
 
   public static void buildClasspath(String pomFile, String to) throws Exception {
     System.out.print("   analyzing...");
-    Process process = Runtime.getRuntime().exec("mvn dependency:build-classpath --file=" + pomFile
+    String command = "mvn dependency:build-classpath --file=" + pomFile
         + " -Dmdep.outputFile="
         + to
-        + " --batch-mode");
+        + " -DrepoUrl=" + toRepoString()
+        + " --batch-mode";
+    Process process = Runtime.getRuntime().exec(command);
 
     if (process.waitFor() == 0)
       System.out.println("ok");
     else {
       System.out.println("failed");
+      System.out.println(command);
+      System.out.println();
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       while (br.ready())
         System.out.println(br.readLine());
+      System.exit(1);
     }
   }
 }

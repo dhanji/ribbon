@@ -104,7 +104,11 @@ public class Bootstrap {
   private static Map<String, Object> readRibbonYml() throws IOException {
     // Read configuration from ribbon.yml
     Yaml y = new Yaml();
-    FileReader io = new FileReader("ribbon.yml");
+    File file = new File("ribbon.yml");
+    if (!file.exists())
+      return Collections.emptyMap();
+
+    FileReader io = new FileReader(file);
     try {
       return (Map<String, Object>) y.load(io);
 

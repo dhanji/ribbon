@@ -27,6 +27,7 @@ redep() ->
   yaml = new Yaml()
   config = yaml.load(f.read('ribbon.yml'))
   template_pom = Util::toString(Bootstrap.getResourceAsStream('template_pom.xml'))
+  config.repositories = if config.repositories == Nothing then [] else config.repositories
   console.write('  analyze dependency tree')
   f.write('tmp_pom.xml', TemplateRuntime::eval(template_pom, config))
   Bootstrap::buildClasspath('tmp_pom.xml', '._classpath')

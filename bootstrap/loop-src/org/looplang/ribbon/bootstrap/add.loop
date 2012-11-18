@@ -34,5 +34,5 @@ add_dep(dep) ->
 
 main(args) ->
   validate(args)
-  console.write("      add @{args[1]}   ")
+  console.write("      add @{args[1]}   \n")
   check_dep(args[1])

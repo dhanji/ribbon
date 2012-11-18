@@ -16,6 +16,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author dhanji@gmail.com (Dhanji R. Prasanna)
  */
 class RibbonApp {
-  public static final String PREFIX = "app/";
+  public static final String PREFIX = "app" + File.separatorChar;
   public static final String APP = "app";
   public static final String ROUTE_FUNC = "route";
   private final Jade jade;
@@ -70,7 +71,16 @@ class RibbonApp {
         return respond(response, result, endpoint.getAfter());
       }
     } else {
-      // Otherwise there is no routeing info, just treat the app file as the endpoint.
+      // Treat this as a static file request.
+      String uri = request.getUri();
+      uri = uri.replace('/', File.separatorChar);
+      uri = uri.replaceAll("[.]+", ".");      // Prevent seeking up the dir tree.
+
+      File file = new File("assets" + File.separatorChar + uri);
+      if (file.exists() && !file.isDirectory())
+        return new RibbonResponse(response, null, file);
+
+      // Otherwise there is no routing info, just treat the app file as the endpoint.
       Object result = primary.dispatch(request.getMethod().getName().toLowerCase(), request);
 
       return respond(response, result, primary.getAfter());

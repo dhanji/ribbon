@@ -208,7 +208,7 @@ public class Bootstrap {
   }
 
   public static void buildClasspath(String pomFile, String to) throws Exception {
-    System.out.print("   analyzing...");
+    System.out.print("  [running maven");
     String command = "mvn dependency:build-classpath --file=" + pomFile
         + " -Dmdep.outputFile="
         + to
@@ -216,15 +216,30 @@ public class Bootstrap {
         + " --batch-mode";
     Process process = Runtime.getRuntime().exec(command);
 
+    StringBuilder mvnOut = new StringBuilder();
+    int exitValue = -1;
+    BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    do {
+      try {
+        while (br.ready()) {
+          mvnOut.append(br.readLine()).append('\n');
+          System.out.print('.');
+        }
+        exitValue = process.exitValue();
+      } catch (Exception e) {
+        // Ignored.
+        Thread.sleep(200L);
+      }
+    } while (exitValue < 0);
+
+
     if (process.waitFor() == 0)
-      System.out.println("ok");
+      System.out.println("ok]");
     else {
-      System.out.println("failed");
+      System.out.println("failed]");
       System.out.println(command);
       System.out.println();
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      while (br.ready())
-        System.out.println(br.readLine());
+      System.out.println(mvnOut);
       System.exit(1);
     }
   }
